@@ -37,6 +37,7 @@ def import_zip(zipfile):
     next_mark = 1
     common_prefix = None
     mark = dict()
+    mode = dict()
 
     basename = path.basename(zipfile)
     m = re.search('texshopsource-(.+)\.zip', basename)
@@ -64,6 +65,8 @@ def import_zip(zipfile):
                 last_slash = common_prefix[:-1].rfind('/') + 1
                 common_prefix = common_prefix[:last_slash]
 
+        mode[name] = info.external_attr >> 16
+
         mark[name] = ':' + str(next_mark)
         next_mark += 1
 
@@ -86,7 +89,13 @@ def import_zip(zipfile):
 
     println('deleteall')
     for name in mark.keys():
-        fast_import.write('M 100644 ' + mark[name] + ' ' +
+        if (mode[name] & 0777000) == 0120000:
+            m = "120000"
+        elif (mode[name] & 0000777) == 0755:
+            m = "100755"
+        else:
+            m = "100644"
+        fast_import.write('M ' + m + ' ' + mark[name] + ' ' +
             name[len(common_prefix):] + "\n")
     println('')
 
