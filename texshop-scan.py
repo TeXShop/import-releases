@@ -2,11 +2,19 @@
 import urllib2
 import email.utils
 import xmltodict
-#import base64
-#import pycurl
+import re
+import subprocess
+import os
+import errno
 
-APPCAST_URL="http://pages.uoregon.edu/koch/texshop/texshop-64/texshopappcast.xml"
-#APPCAST_URL="http://localhost:4000/texshopappcast.xml
+DEBUG_MODE = False
+
+if DEBUG_MODE:
+    APPCAST_URL="http://localhost:4000/texshopappcast.xml"
+    #  python -m SimpleHTTPServer 8000
+else:
+    APPCAST_URL="http://pages.uoregon.edu/koch/texshop/texshop-64/texshopappcast.xml"
+
 
 def gettAppcastData():
     # TODO: handle errors, timeouts, ...
@@ -15,9 +23,10 @@ def gettAppcastData():
     data = file.read()
     file.close()
 
-    data = xmltodict.parse(data)
+    return xmltodict.parse(data)
 
-
+# Example
+#
 # OrderedDict([
 #     (u'rss', OrderedDict([
 #         (u'@version', u'2.0'),
@@ -52,52 +61,56 @@ def extractAppcastData(data):
     channel = rss['channel']
     item = channel['item']
     pubDate = item['pubDate']       # rfc2822 format is directly used by git
+    releaseNotesLink = item['sparkle:releaseNotesLink']
     #date_tuple = email.utils.parsedate_tz(pubDate)    # TODO: can be None
     #timestamp = email.utils.mktime_tz(date_tuple)
     #date = datetime.datetime.fromtimestamp(timestamp)
     enclosure = item['enclosure']
     version = enclosure['@sparkle:version']
-    return { 'version': version, 'date': pubDate }
+    url  = enclosure['@url']
+    return { 'version': version, 'date': pubDate, 'url': url, 'relnotes': releaseNotesLink }
 
-def loadVersionList():
-    #TODO
-    return { '1.0':"bla" }
+# From http://stackoverflow.com/questions/600268
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
 
 raw = gettAppcastData()
 data = extractAppcastData(raw)
 
-print "Found version %s (released %s)" % (data['version'], data['date'])
+binary_url = data['url'];
+source_url = re.sub(r'texshop([^/]+)\.zip$', r'texshopsource\1.zip', binary_url)
 
-# Load list with all known versions
-known_versions = loadVersionList();
+
+print "Found version %s (released %s)" % (data['version'], data['date'])
+print "Binary URL: " + binary_url
+print "Source URL: " + source_url
+print "Release notes: " + data['relnotes']
+
+# create directory for that version, if it did not already exist
+dir = 'releases/' + data['version'] + '/'
+mkdir_p(dir)
 
 # Check if this is a new release
-if data['version'] in known_versions:
+if os.path.isfile(dir + 'DONE'):
     print 'version already catalogued'
     exit(0)
 
+# Download file from given url into file at dst
+def download(url, dst):
+    res = subprocess.call(["curl", "-C", "-", "-o", dst, url])
+    if res != 0:
+        print 'failed downloading ' + url
+        exit(1)
 
-# Download it
-# TODO: download just the source or also the binary
-basename = 'texshop-%s.zip' % data['version']
-#  http://pages.uoregon.edu/koch/texshop/texshop-64/texshopsource349.zip
-#or just use this?
-#  http://pages.uoregon.edu/koch/texshop/texshop-64/texshopsource.zip
+download(APPCAST_URL, dir + 'appcast-%s.xml' % data['version'])
+download(data['relnotes'], dir + 'relnotes-%s.txt' % data['version'])
+download(source_url, dir + 'texshopsource-%s.zip' % data['version'])
+download(binary_url, dir + 'texshop-%s.zip' % data['version'])
 
-# Verify the download ?!?
-
-# Import into repository
-#TODO
-
-# Push repository???
-
-
-
-# openssl dgst -dss1 -verify dsa_pub.pem -signature sigfile.bin foo.sha1
-# openssl dgst -dss1 -verify dsa_pub.pem -signature texshop-3.49.zip.sig texshop349.zip
-
-# openssl enc -d -A -base64 -in signature.txt -out signature.sha1
-# openssl dgst -sha1 -verify Public.pem -signature signature.sha1 data.txt
-
-
-# http://pages.uoregon.edu/koch/texshop/texshop-64/texshop349.zip
+# Once all downloads hav successfully completed, record this
+open(dir + 'DONE', 'a').close()
