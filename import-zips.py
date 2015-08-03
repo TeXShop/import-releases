@@ -24,8 +24,8 @@ if len(argv) < 2:
     exit(1)
 
 branch_ref = 'refs/heads/import-zips'
-committer_name = 'Max Horn'
-committer_email = 'max@quendi.de'
+committer_name = 'Richard Koch'
+committer_email = 'koch@uoregon.edu'
 
 fast_import = popen('git fast-import --quiet', 'w')
 
