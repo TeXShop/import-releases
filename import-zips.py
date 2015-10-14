@@ -52,6 +52,8 @@ def import_zip(zipfile):
             continue
         if name.endswith('/.DS_Store'):
             continue
+        if name.endswith('/.svn'):
+            continue
         if name.startswith('__MACOSX/'):
             continue
         info = zip.getinfo(name)
