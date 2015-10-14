@@ -87,9 +87,6 @@ source_url = re.sub(r'texshop([^/]+)\.zip$', r'texshopsource\1.zip', binary_url)
 
 
 print "Found version %s (released %s)" % (data['version'], data['date'])
-print "Binary URL: " + binary_url
-print "Source URL: " + source_url
-print "Release notes: " + data['relnotes']
 
 # create directory for that version, if it did not already exist
 dir = 'releases/' + data['version'] + '/'
@@ -107,9 +104,13 @@ def download(url, dst):
         print 'failed downloading ' + url
         exit(1)
 
+print "Downloading appcast from " + APPCAST_URL
 download(APPCAST_URL, dir + 'appcast-%s.xml' % data['version'])
+print "Downloading release notes from " + data['relnotes']
 download(data['relnotes'], dir + 'relnotes-%s.txt' % data['version'])
+print "Downloading source from " + source_url
 download(source_url, dir + 'texshopsource-%s.zip' % data['version'])
+print "Downloading binary from " + binary_url
 download(binary_url, dir + 'texshop-%s.zip' % data['version'])
 
 # Once all downloads hav successfully completed, record this
