@@ -13,6 +13,7 @@ from sys import argv, exit, hexversion, stderr
 from time import mktime
 from zipfile import ZipFile
 import re
+import subprocess
 
 if hexversion < 0x01060000:
     # The limiter is the zipfile module
@@ -27,7 +28,6 @@ branch_ref = 'refs/heads/import-zips'
 committer_name = 'Richard Koch'
 committer_email = 'koch@uoregon.edu'
 
-fast_import = popen('git fast-import --quiet', 'w')
 
 def println(str):
     fast_import.write(str + "\n")
@@ -117,8 +117,20 @@ def import_zip(zipfile):
     println('from ' + branch_ref)
     println('')
 
+
+# check if branch exists
+branch_exists = subprocess.call(["git", "show-ref", "-q", "--verify", branch_ref]) == 0
+
+# start the import
+fast_import = popen('git fast-import --quiet', 'w')
+
+# Continue the existing import-zips branch.
+if branch_exists:
+    println('reset ' + branch_ref)
+    println('from ' + branch_ref+ '^0')
+
 for zipfile in argv[1:]:
     import_zip(zipfile)
 
 if fast_import.close():
-   exit(1)
+    exit(1)
