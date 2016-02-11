@@ -124,10 +124,13 @@ branch_exists = subprocess.call(["git", "show-ref", "-q", "--verify", branch_ref
 # start the import
 fast_import = popen('git fast-import --quiet', 'w')
 
-# Continue the existing import-zips branch.
+println('reset ' + branch_ref)
 if branch_exists:
-    println('reset ' + branch_ref)
-    println('from ' + branch_ref+ '^0')
+    # Continue the existing import-zips branch.
+    println('from ' + branch_ref + '^0')
+else:
+    # Continue from master branch (which can contain initial data
+    println('from master^0')
 
 for zipfile in argv[1:]:
     import_zip(zipfile)
