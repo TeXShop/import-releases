@@ -29,6 +29,13 @@ committer_name = 'Richard Koch'
 committer_email = 'koch@uoregon.edu'
 
 
+# The following regex controls which files are ignored, i.e. not imported.
+# This includes:
+# - "invisible" files like .DS_Store and subversion ".svn" directories
+# - TeX temporary files like *.aux and *.log
+# - User specific parts of the Xcode project files
+ignore = re.compile('(/|/\.DS_Store|/\.svn|\.log|\.aux)$|^__MACOSX|TeXShop.xcodeproj/(xcuserdata/.*|.*\.(pbxuser|mode1.*))$')
+
 def println(str):
     fast_import.write(str + "\n")
 
@@ -48,13 +55,7 @@ def import_zip(zipfile):
 
     zip = ZipFile(zipfile, 'r')
     for name in zip.namelist():
-        if name.endswith('/'):
-            continue
-        if name.endswith('/.DS_Store'):
-            continue
-        if name.endswith('/.svn'):
-            continue
-        if name.startswith('__MACOSX/'):
+        if ignore.search(name):
             continue
         info = zip.getinfo(name)
 
