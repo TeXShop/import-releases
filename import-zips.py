@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-## zip archive frontend for git-fast-import
+## Based on git's contrib/fast-import/import-zips.py,
+## originally written by Johannes Schindelin.
 ##
-## For example:
+## Usage example:
 ##
 ##  mkdir project; cd project; git init
-##  python import-zips.py *.zip
+##  python ../import-zips.py ../releases/?.??/*source*zip
 ##  git log --stat import-zips
 
 from os import popen, path
