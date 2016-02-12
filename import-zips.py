@@ -99,8 +99,7 @@ def import_zip(zipfile):
             m = "100755"
         else:
             m = "100644"
-        fast_import.write('M ' + m + ' ' + mark[name] + ' ' +
-            name[len(common_prefix):] + "\n")
+        println('M %s %s %s' % (m, mark[name], name[len(common_prefix):]))
     println('')
 
     # Create annotated tag
