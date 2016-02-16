@@ -91,7 +91,7 @@ jsonval() {
 }
 
 # check if release already exists
-response=$(curl --fail -s -S -X GET $API_URL/tags/$TAG?access_token=$TOKEN)
+response=$(curl -s -S -X GET $API_URL/tags/$TAG?access_token=$TOKEN)
 if ! echo "${response}" | fgrep -q "Not Found" ; then
     if [ x$FORCE = xyes ] ; then
         notice "Deleting existing release $TAG from GitHub"
