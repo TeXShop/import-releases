@@ -140,7 +140,7 @@ for ARCHIVENAME in texshop-$VERSION.zip texshopsource-$VERSION.zip; do
         continue
     fi
     notice "Uploading $ARCHIVENAME with mime type $MIMETYPE"
-    curl --fail -s -S -X POST $UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME \
+    curl --fail -X POST $UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token $TOKEN" \
         -H "Content-Type: $MIMETYPE" \
