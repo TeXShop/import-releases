@@ -91,12 +91,12 @@ jsonval() {
 }
 
 # check if release already exists
-response=$(curl -s -S -X GET $API_URL/tags/$TAG?access_token=$TOKEN)
+response=$(curl --fail -s -S -X GET $API_URL/tags/$TAG?access_token=$TOKEN)
 if ! echo "${response}" | fgrep -q "Not Found" ; then
     if [ x$FORCE = xyes ] ; then
         notice "Deleting existing release $TAG from GitHub"
         RELEASE_ID=$(jsonval | sed "s/id:/\n/g" | sed -n 2p | sed "s| ||g")
-        response=$(curl -s -S -X DELETE $API_URL/$RELEASE_ID?access_token=$TOKEN)
+        response=$(curl --fail -s -S -X DELETE $API_URL/$RELEASE_ID?access_token=$TOKEN)
     else
         error "release $TAG already exists on GitHub, aborting (use --force to override this)"
     fi
@@ -113,15 +113,15 @@ define DATA <<EOF
 }
 EOF
 
-#echo "DATA is:"
-#echo "$DATA"
+echo "DATA is:"
+echo "$DATA"
 
 notice "Creating release $TAG on GitHub"
-response=$(curl -s -S -H "Content-Type: application/json" \
+response=$(curl --fail -s -S -H "Content-Type: application/json" \
     -X POST --data "$DATA" $API_URL?access_token=$TOKEN)
 
-#echo "response is:"
-#echo "$response"
+echo "response is:"
+echo "$response"
 
 RELEASE_ID=$(jsonval | sed "s/id:/\n/g" | sed -n 2p | sed "s| ||g")
 
@@ -140,7 +140,7 @@ for ARCHIVENAME in texshop-$VERSION.zip texshopsource-$VERSION.zip; do
         continue
     fi
     notice "Uploading $ARCHIVENAME with mime type $MIMETYPE"
-    curl -s -S -X POST $UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME \
+    curl --fail -s -S -X POST $UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token $TOKEN" \
         -H "Content-Type: $MIMETYPE" \
