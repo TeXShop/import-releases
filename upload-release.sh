@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 # Upload a TeXShop release (release notes, binary, sources) to GitHub
 
