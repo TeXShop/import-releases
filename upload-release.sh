@@ -56,7 +56,7 @@ RELNOTES=$VERSION/relnotes-$VERSION.txt
 if [ ! -f $RELNOTES ] ; then
     error "Could not access release notes at $RELNOTES"
 fi
-RELNOTES_BODY="$(sed ':a;N;$!ba;s/\n/\\n/g' <$RELNOTES)"
+RELNOTES_BODY="$(sed -e 's/\"/\\\"/g' <$RELNOTES | sed ':a;N;$!ba;s/\n/\\n/g')"
 
 API_URL=https://api.github.com/repos/TeXShop/TeXShop/releases
 UPLOAD_URL=https://uploads.github.com/repos/TeXShop/TeXShop/releases
