@@ -52,11 +52,14 @@ TAG=v$VERSION
 # 
 RELNOTES=$VERSION/relnotes-$VERSION.txt
 
+function json_escape(){
+  echo -n "$1" | python -c 'import json,sys; print json.dumps(sys.stdin.read())'
+}
 
 if [ ! -f $RELNOTES ] ; then
     error "Could not access release notes at $RELNOTES"
 fi
-RELNOTES_BODY="$(sed -e 's/\"/\\\"/g' -e 's/\t/\\t/g' <$RELNOTES | sed ':a;N;$!ba;s/\n/\\n/g')"
+RELNOTES_BODY="$(python -c 'import json,sys; print json.dumps(sys.stdin.read())' <$RELNOTES)"
 
 API_URL=https://api.github.com/repos/TeXShop/TeXShop/releases
 UPLOAD_URL=https://uploads.github.com/repos/TeXShop/TeXShop/releases
@@ -107,25 +110,26 @@ define DATA <<EOF
 {
   "tag_name": "$TAG",
   "name": "$VERSION",
-  "body": "$RELNOTES_BODY",
+  "body": $RELNOTES_BODY,
   "draft": false,
   "prerelease": false
 }
 EOF
 
-echo "DATA is:"
-echo "$DATA"
+# echo "DATA is:"
+# echo "$DATA"
 
 notice "Creating release $TAG on GitHub"
 response=$(curl --fail -s -S -H "Content-Type: application/json" \
-    -X POST --data "$DATA" $API_URL?access_token=$TOKEN)
+    -X POST --data "$DATA" $API_URL?access_token=$TOKEN) 
 
-echo "response is:"
-echo "$response"
+# echo "response is:"
+# echo "$response"
 
 RELEASE_ID=$(jsonval | sed "s/id:/\n/g" | sed -n 2p | sed "s| ||g")
 
-# TODO: error handling?
+# TODO: better error handling; in particular, show the user the response in case of an error?
+# or at least a hint whether the JSON was invalid, auth failed, ... etc. 
 
 ######################################################################
 #
@@ -140,11 +144,11 @@ for ARCHIVENAME in texshop-$VERSION.zip texshopsource-$VERSION.zip; do
         continue
     fi
     notice "Uploading $ARCHIVENAME with mime type $MIMETYPE"
-    curl --fail -X POST $UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME \
+    curl --fail --progress-bar -o "response.log" -X POST $UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token $TOKEN" \
         -H "Content-Type: $MIMETYPE" \
-        --data-binary @"$FULLNAME"
+        --data-binary @"$FULLNAME" || error "An error occurred, please consult response.log"
 done
 
 exit 0
