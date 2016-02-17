@@ -52,14 +52,13 @@ TAG=v$VERSION
 # 
 RELNOTES=$VERSION/relnotes-$VERSION.txt
 
-function json_escape(){
-  echo -n "$1" | python -c 'import json,sys; print json.dumps(sys.stdin.read())'
-}
-
-if [ ! -f $RELNOTES ] ; then
-    error "Could not access release notes at $RELNOTES"
+if [ -f $RELNOTES ] ; then
+    RELNOTES_BODY="$(python -c 'import json,sys; print json.dumps(sys.stdin.read())' <$RELNOTES)"
+else
+    #error "Could not access release notes at $RELNOTES"
+    RELNOTES_BODY='""'
 fi
-RELNOTES_BODY="$(python -c 'import json,sys; print json.dumps(sys.stdin.read())' <$RELNOTES)"
+
 
 API_URL=https://api.github.com/repos/TeXShop/TeXShop/releases
 UPLOAD_URL=https://uploads.github.com/repos/TeXShop/TeXShop/releases
