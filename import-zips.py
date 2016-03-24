@@ -6,7 +6,7 @@
 ## Usage example:
 ##
 ##  mkdir project; cd project; git init
-##  python ../import-zips.py ../releases/?.??/*source*zip
+##  python ../import-zips.py ../releases/[23].*/*source*zip
 ##  git log --stat import-zips
 
 from os import popen, path
