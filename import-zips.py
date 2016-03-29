@@ -46,7 +46,12 @@ ignore = re.compile("""
 """, re.X)
 
 def println(str):
-    fast_import.write(str + "\n")
+    fast_import.write(str + '\n')
+
+def print_data(data):
+    fast_import.write('data ' + str(len(data)) + '\n')
+    fast_import.write(data)
+    fast_import.write('\n')
 
 def import_zip(zipfile):
     commit_time = 0
@@ -85,19 +90,14 @@ def import_zip(zipfile):
         #print(name)
         println('blob')
         println('mark ' + mark[name])
-        println('data ' + str(info.file_size))
-        fast_import.write(zip.read(name))
-        println('')
+        print_data(zip.read(name))
 
     timestamp = mktime(commit_time + (0, 0, 0))
     committer = '%s <%s> %d +0000' % (committer_name, committer_email, timestamp)
 
     println('commit ' + branch_ref)
     println('committer ' + committer)
-    println('data <<EOM')
-    println('Version ' + version)
-    println('EOM')
-    println('')
+    print_data('Version ' + version + '\n')
 
     println('deleteall')
     for name in mark.keys():
@@ -111,19 +111,17 @@ def import_zip(zipfile):
 
     # insert fake .gitattributes into each commit
     println('M %s %s %s' % (100644, "inline", ".gitattributes"))
-    println('data <<EOM')
-    println('*.nib -diff')
-    println('EOM')
-    println('')
+    print_data("""\
+*.nib -diff
+""")
 
     # insert fake .gitignore into each commit
     println('M %s %s %s' % (100644, "inline", ".gitignore"))
-    println('data <<EOM')
-    println('/TeXShop.xcodeproj/*.mode*')
-    println('/TeXShop.xcodeproj/*.pbxuser')
-    println('/TeXShop.xcodeproj/xcuserdata')
-    println('EOM')
-    println('')
+    print_data("""\
+/TeXShop.xcodeproj/*.mode*
+/TeXShop.xcodeproj/*.pbxuser')
+/TeXShop.xcodeproj/xcuserdata')
+""")
 
     println('')  # end of commit
 
@@ -136,9 +134,7 @@ def import_zip(zipfile):
 #     println('tag ' + tag)
 #     println('from ' + branch_ref)
 #     println('tagger ' + committer)
-#     println('data <<EOM')
-#     println('Package ' + basename)
-#     println('EOM')
+#     print_data('Package ' + basename + '\n')
 #     println('')
     println('reset refs/tags/' + tag)
     println('from ' + branch_ref)
