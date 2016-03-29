@@ -102,7 +102,25 @@ def import_zip(zipfile):
         else:
             m = "100644"
         println('M %s %s %s' % (m, mark[name], name[len(common_prefix):]))
+
+    # insert fake .gitattributes into each commit
+    println('M %s %s %s' % (100644, "inline", ".gitattributes"))
+    println('data <<EOM')
+    println('*.nib -diff')
+    println('EOM')
     println('')
+
+    # insert fake .gitignore into each commit
+    println('M %s %s %s' % (100644, "inline", ".gitignore"))
+    println('data <<EOM')
+    println('/TeXShop.xcodeproj/*.mode*')
+    println('/TeXShop.xcodeproj/*.pbxuser')
+    println('/TeXShop.xcodeproj/xcuserdata')
+    println('EOM')
+    println('')
+
+    println('')  # end of commit
+
 
     # Create annotated tag
     # TODO: use 'reset' instead of light-weight tag?
