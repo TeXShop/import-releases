@@ -35,7 +35,9 @@ committer_email = 'koch@uoregon.edu'
 # - "invisible" files like .DS_Store and subversion ".svn" directories
 # - TeX temporary files like *.aux and *.log
 # - User specific parts of the Xcode project files
-ignore = re.compile('(/|/\.DS_Store|/\.svn|\.log|\.aux)$|^__MACOSX|TeXShop.xcodeproj/(xcuserdata/.*|.*\.(pbxuser|mode1.*))$')
+# - FOO~.nib files
+# - build/ directory
+ignore = re.compile('(/|/\.DS_Store|/\.svn|\.log|\.aux)$|~\.nib/|^__MACOSX|build|TeXShop.xcodeproj/(xcuserdata/.*|.*\.(pbxuser|mode1.*))$')
 
 def println(str):
     fast_import.write(str + "\n")
