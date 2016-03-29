@@ -31,13 +31,19 @@ committer_email = 'koch@uoregon.edu'
 
 
 # The following regex controls which files are ignored, i.e. not imported.
-# This includes:
-# - "invisible" files like .DS_Store and subversion ".svn" directories
-# - TeX temporary files like *.aux and *.log
-# - User specific parts of the Xcode project files
-# - FOO~.nib files
-# - build/ directory
-ignore = re.compile('(/|/\.DS_Store|/\.svn|\.log|\.aux)$|~\.nib/|^__MACOSX|build|TeXShop.xcodeproj/(xcuserdata/.*|.*\.(pbxuser|mode1.*))$')
+ignore = re.compile("""
+    /$           |  # directories (git only tracks files)
+    ^__MACOSX/   |  # resource forks and extended attribues
+    /\.DS_Store$ |  # Finder metadata
+    /\.svn/      |  # Subversion leftovers
+    /CVS/        |  # CVS leftovers
+    \.(log|aux)$ |  # LaTeX build artifacts
+    ~\.nib/      |  # Interface Builder backup files
+    /build/      |  # build files
+    \.pbxuser$   |  # user specific project files (Project Builder and Xcode)
+    /xcuserdata/ |  # user specific Xcode files
+    \.mode1.*$      # user specific Xcode files
+""", re.X)
 
 def println(str):
     fast_import.write(str + "\n")
