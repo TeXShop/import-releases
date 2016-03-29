@@ -65,7 +65,7 @@ def import_zip(zipfile):
     version = m.group(1)
     tag = 'v' + version
 
-    print " Importing "+zipfile+", version is "+version+"\n"
+    print " Importing "+zipfile+", version is "+version
 
     zip = ZipFile(zipfile, 'r')
     for name in zip.namelist():
