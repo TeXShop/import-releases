@@ -11,6 +11,19 @@
 
 * Allow incremental mode, so that one does not need to rebuild the
   whole repository after each release
+* add a map from versions to known releases dates, to be used instead of the
+  date guessed from the tarball
+
+* add initial commit which adds:
+
+.gitignore:
+/TeXShop.xcodeproj/*.mode*
+/TeXShop.xcodeproj/*.pbxuser
+/TeXShop.xcodeproj/xcuserdata
+
+.gitattributes:
+*.nib -diff
+
 
 == texshop-watcher ==
 

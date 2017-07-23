@@ -9,12 +9,35 @@
 ##  python ../import-zips.py ../releases/[23].*/*source*zip
 ##  git log --stat import-zips
 
+# TODO: import release notes into commit messages
+# TODO: change this script to also loop over dirs,
+#  and sort them correctly...
+
 from os import popen, path
 from sys import argv, exit, hexversion, stderr
 from time import mktime
 from zipfile import ZipFile
 import re
 import subprocess
+
+# TODO: Take a look at 
+#  https://github.com/davisp/ghp-import/blob/master/ghp-import
+# and learn from that, e.g.:
+# - factor out various things into functions
+# - (de)normalize unicode filenames
+# - get committer name / email from gitconfig
+# - do not use marks, instead just push everything in
+# - add proper command line parsing, add options for
+#   - overriding the committer
+#   - (de)activating incremental mode
+#   - override name of branch to import to
+#   - allow overriding the commit message
+#   - ...
+# - perform some checks on the repo, e.g.:
+#   - check if "import-zips" branch is present
+# - factor out the code which parses the versions.
+#   move that to a separate script. This way, import-zips stays reusable
+
 
 if hexversion < 0x01060000:
     # The limiter is the zipfile module
