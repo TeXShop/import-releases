@@ -3,24 +3,33 @@
 # Upload a TeXShop release (release notes, binary, sources) to GitHub
 
 
-# Little helper for defining variables from heredoc
-# This use the bash extension '-d' to the read command,
-# also supported by zsh. If this is an issue 
-define() {
-    IFS='\n' read -r -d '' $1 || true
-}
+######################################################################
+#
+# Various little helper functions
 
+
+# print notices in green
 notice() {
     printf "\033[32m%s\033[0m\n" "$*"
 }
 
+# print notices in yellow
 warning() {
     printf "\033[33mWARNING: %s\033[0m\n" "$*"
 }
 
+# print error in red and exit
 error() {
     printf "\033[31mERROR: %s\033[0m\n" "$*"
     exit 1
+}
+
+# helper function for parsing GitHub's JSON output. Right now,
+# we only extra the value of a single key at a time. This means
+# we may end up parsing the same JSON data two times, but that
+# doesn't really matter as it is tiny.
+json_get_key() {
+    echo "$response" | python -c 'import json,sys;obj=json.load(sys.stdin);print obj.get("'$1'","")'
 }
 
 ######################################################################
@@ -85,27 +94,30 @@ echo ""
 # Create the GitHub release
 #
 
-# crude helper function for "parsing" enough JSON so that we can understand
-# what's going on.
-jsonval() {
-    temp=`echo $response | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w id`
-    echo ${temp##*|}
-}
-
 # check if release already exists
-response=$(curl -s -S -X GET $API_URL/tags/$TAG?access_token=$TOKEN)
-if ! echo "${response}" | fgrep -q "Not Found" ; then
+response=`curl -s -S -X GET "$API_URL/tags/$TAG?access_token=$TOKEN"`
+MESSAGE=`json_get_key message`
+RELEASE_ID=`json_get_key id`
+
+if [ "$MESSAGE" = "Not Found" ] ; then
+    MESSAGE=  # release does not yet exist -> that's how we like it
+elif [ x"$RELEASE_ID" != x ] ; then
+    # release already exists -> error out or delete it
     if [ x$FORCE = xyes ] ; then
         notice "Deleting existing release $TAG from GitHub"
-        RELEASE_ID=$(jsonval | sed "s/id:/\n/g" | sed -n 2p | sed "s| ||g")
-        response=$(curl --fail -s -S -X DELETE $API_URL/$RELEASE_ID?access_token=$TOKEN)
+        response=`curl --fail -s -S -X DELETE "$API_URL/$RELEASE_ID?access_token=$TOKEN"`
+        MESSAGE=
     else
         error "release $TAG already exists on GitHub, aborting (use --force to override this)"
     fi
 fi
 
+if [ x"$MESSAGE" != x ] ; then
+    error "accessing GitHub failed: $MESSAGE"
+fi
+
 # Create the release by sending suitable JSON
-define DATA <<EOF
+DATA=`cat <<EOF
 {
   "tag_name": "$TAG",
   "name": "$VERSION",
@@ -114,21 +126,21 @@ define DATA <<EOF
   "prerelease": false
 }
 EOF
+`
 
-# echo "DATA is:"
-# echo "$DATA"
+notice "Creating new release $TAG on GitHub"
+response=`curl -s -S -H "Content-Type: application/json" \
+ -X POST --data "$DATA" "$API_URL?access_token=$TOKEN"`
 
-notice "Creating release $TAG on GitHub"
-response=$(curl --fail -s -S -H "Content-Type: application/json" \
-    -X POST --data "$DATA" $API_URL?access_token=$TOKEN) 
+MESSAGE=`json_get_key message`
+if [ x"$MESSAGE" != x ] ; then
+    error "creating release on GitHub failed: $MESSAGE"
+fi
+RELEASE_ID=`json_get_key id`
+if [ x"$RELEASE_ID" = x ] ; then
+    error "creating release on GitHub failed: no release id"
+fi
 
-# echo "response is:"
-# echo "$response"
-
-RELEASE_ID=$(jsonval | sed "s/id:/\n/g" | sed -n 2p | sed "s| ||g")
-
-# TODO: better error handling; in particular, show the user the response in case of an error?
-# or at least a hint whether the JSON was invalid, auth failed, ... etc. 
 
 ######################################################################
 #
@@ -143,7 +155,8 @@ for ARCHIVENAME in texshop-$VERSION.zip texshopsource-$VERSION.zip; do
         continue
     fi
     notice "Uploading $ARCHIVENAME with mime type $MIMETYPE"
-    curl --fail --progress-bar -o "response.log" -X POST $UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME \
+    curl --fail --progress-bar -o "response.log" \
+        -X POST "$UPLOAD_URL/$RELEASE_ID/assets?name=$ARCHIVENAME" \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token $TOKEN" \
         -H "Content-Type: $MIMETYPE" \
