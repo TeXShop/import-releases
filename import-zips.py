@@ -18,6 +18,7 @@ from sys import argv, exit, hexversion, stderr
 from time import mktime
 from zipfile import ZipFile
 import re
+import optparse
 import subprocess
 
 # TODO: Take a look at 
@@ -77,7 +78,8 @@ def print_data(data):
     fast_import.write('\n')
 
 def import_zip(zipfile):
-    commit_time = 0
+    latest_time = 0
+    latest_time_before_2014 = 0
     next_mark = 1
     common_prefix = None
     mark = dict()
@@ -96,8 +98,11 @@ def import_zip(zipfile):
             continue
         info = zip.getinfo(name)
 
-        if commit_time < info.date_time:
-            commit_time = info.date_time
+        if latest_time < info.date_time:
+            latest_time = info.date_time
+        if latest_time_before_2014 < info.date_time and info.date_time[0] < 2014:
+            latest_time_before_2014 = info.date_time
+
         if common_prefix == None:
             common_prefix = name[:name.rfind('/') + 1]
         else:
@@ -115,7 +120,12 @@ def import_zip(zipfile):
         println('mark ' + mark[name])
         print_data(zip.read(name))
 
-    timestamp = mktime(commit_time + (0, 0, 0))
+    if latest_time[0] >= 2014 and latest_time_before_2014[0] < 2013:
+        print "  OVERRIDE: ignoring mods past 2014 as flukes"
+        latest_time = latest_time_before_2014
+
+    # TODO: lookup version in a dictionary. If a match is found, use the commit date specified there
+    timestamp = mktime(latest_time + (0, 0, 0))
     committer = '%s <%s> %d +0000' % (committer_name, committer_email, timestamp)
 
     println('commit ' + branch_ref)
