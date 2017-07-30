@@ -146,14 +146,21 @@ def import_zip(zipfile):
     println('M %s %s %s' % (100644, "inline", ".gitattributes"))
     print_data("""\
 *.nib -diff
+*.log -diff
+*.aux -diff
+*.tex -diff
+*.pdf -diff
+*.jpg -diff
 """)
 
     # insert fake .gitignore into each commit
     println('M %s %s %s' % (100644, "inline", ".gitignore"))
     print_data("""\
 /TeXShop.xcodeproj/*.mode*
-/TeXShop.xcodeproj/*.pbxuser')
-/TeXShop.xcodeproj/xcuserdata')
+/TeXShop.xcodeproj/*.pbxuser
+/TeXShop.xcodeproj/project.xcworkspace/xcshareddata/
+/TeXShop.xcodeproj/project.xcworkspace/xcuserdata/
+/TeXShop.xcodeproj/xcuserdata/
 """)
 
     println('')  # end of commit
