@@ -1,10 +1,11 @@
-A bunch of tools for maintaining the TeXShop/TeXShop repository.
+A bunch of tools for maintaining the TeXShop repository at
+  <https://github.com/TeXShop/TeXShop>
 
 ### texshop-scan.py
-This tool scans the TeXShop website for changes, in particular, for
+This script scans the TeXShop website for changes, in particular, for
 new source code releases. When a new release is detected, it is
-downloaded.
+downloaded. This script is intended for use in a cron job.
 
 ### import-zips.py
-With the import-zips.py tool, one can import a bunch of ZIP files
+With the import-zips.py script, one can import a bunch of ZIP files
 containing TeXShop releases into a git repository.
