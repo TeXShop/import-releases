@@ -22,7 +22,6 @@ def gettAppcastData():
     file = urllib2.urlopen(APPCAST_URL)
     data = file.read()
     file.close()
-
     return xmltodict.parse(data)
 
 # Example
@@ -53,6 +52,30 @@ def gettAppcastData():
 #     ]))
 # ])
 
+# OrderedDict([
+#     (u'rss', OrderedDict([
+#         (u'@xmlns:sparkle', u'http://www.andymatuschak.org/xml-namespaces/sparkle'),
+#         (u'@version', u'2.0'),
+#         (u'channel', OrderedDict([
+#             (u'title', u'TeXShop'),
+#             (u'item', OrderedDict([
+#                 (u'title', u'4.15'),
+#                 (u'pubDate', u'Sun, 04 Nov 2018 17:06:30 -0800'),
+#                 (u'sparkle:minimumSystemVersion', u'10.10.0'),
+#                 (u'enclosure', OrderedDict([
+#                     (u'@url', u'https://pages.uoregon.edu/koch/texshop/texshop-64/texshop415.zip'),
+#                     (u'@sparkle:version', u'4.15'),
+#                     (u'@sparkle:shortVersionString', u'4.15'),
+#                     (u'@length', u'45204097'),
+#                     (u'@type', u'application/octet-stream'),
+#                     (u'@sparkle:edSignature', u'PBdl84zUpVBny1a1GYtLR5ZvhBc2ByBD6jgep7Wh147vfxAsH5CqQomxVi1aP1wCqkjWG2tWerdG1nD6Wj8WDA=='),
+#                     (u'@sparkle:dsaSignature', u'MC0CFQCYmCRzgucdVoW08Zxs+fb4MFGY3QIUJ3BY+XkFzFn0k9ATI1xlM2IJxKE=')
+#                 ]))
+#             ]))
+#         ]))
+#     ]))
+# ])
+
 # TODO: validate data. E.g.:
 # - verify @xmlns:sparkle is present and set to http://www.andymatuschak.org/xml-namespaces/sparkle
 def extractAppcastData(data):
@@ -61,7 +84,7 @@ def extractAppcastData(data):
     channel = rss['channel']
     item = channel['item']
     pubDate = item['pubDate']       # rfc2822 format is directly used by git
-    releaseNotesLink = item['sparkle:releaseNotesLink']
+    releaseNotesLink = item.get('sparkle:releaseNotesLink', None)
     #date_tuple = email.utils.parsedate_tz(pubDate)    # TODO: can be None
     #timestamp = email.utils.mktime_tz(date_tuple)
     #date = datetime.datetime.fromtimestamp(timestamp)
@@ -106,8 +129,11 @@ def download(url, dst):
 
 print "Downloading appcast from " + APPCAST_URL
 download(APPCAST_URL, dir + 'appcast-%s.xml' % data['version'])
-print "Downloading release notes from " + data['relnotes']
-download(data['relnotes'], dir + 'relnotes-%s.txt' % data['version'])
+if data['relnotes'] == None:
+    print "no release notes given"
+else:
+    print "Downloading release notes from " + data['relnotes']
+    download(data['relnotes'], dir + 'relnotes-%s.txt' % data['version'])
 print "Downloading source from " + source_url
 download(source_url, dir + 'texshopsource-%s.zip' % data['version'])
 print "Downloading binary from " + binary_url
