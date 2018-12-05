@@ -82,7 +82,9 @@ def extractAppcastData(data):
     rss = data['rss']
     assert rss['@xmlns:sparkle'] == 'http://www.andymatuschak.org/xml-namespaces/sparkle'
     channel = rss['channel']
-    item = channel['item'] #[0]
+    item = channel['item']
+    if isinstance(item, list):
+        item = item[0]
     pubDate = item['pubDate']       # rfc2822 format is directly used by git
     releaseNotesLink = item.get('sparkle:releaseNotesLink', None)
     #date_tuple = email.utils.parsedate_tz(pubDate)    # TODO: can be None
