@@ -16,7 +16,7 @@ else:
     APPCAST_URL="http://pages.uoregon.edu/koch/texshop/texshop-64/texshopappcast.xml"
 
 
-def gettAppcastData():
+def getAppcastData():
     # TODO: handle errors, timeouts, ...
     # TODO: set data read limit: say, at most 4kb
     file = urllib2.urlopen(APPCAST_URL)
@@ -104,7 +104,7 @@ def mkdir_p(path):
             pass
         else: raise
 
-raw = gettAppcastData()
+raw = getAppcastData()
 data = extractAppcastData(raw)
 
 binary_url = data['url'];
