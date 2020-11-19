@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-import urllib2
+#!/usr/bin/env python3
+import urllib.request
 import email.utils
 import xmltodict
 import re
@@ -13,13 +13,13 @@ if DEBUG_MODE:
     APPCAST_URL="http://localhost:4000/texshopappcast.xml"
     #  python -m SimpleHTTPServer 8000
 else:
-    APPCAST_URL="http://pages.uoregon.edu/koch/texshop/texshop-64/texshopappcast.xml"
+    APPCAST_URL="https://pages.uoregon.edu/koch/texshop/texshop-64/texshopappcast.xml"
 
 
 def getAppcastData():
     # TODO: handle errors, timeouts, ...
     # TODO: set data read limit: say, at most 4kb
-    file = urllib2.urlopen(APPCAST_URL)
+    file = urllib.request.urlopen(APPCAST_URL)
     data = file.read()
     file.close()
     return xmltodict.parse(data)
@@ -111,7 +111,7 @@ binary_url = data['url'];
 source_url = re.sub(r'texshop([^/]+)\.zip$', r'texshopsource\1.zip', binary_url)
 
 
-print "Found version %s (released %s)" % (data['version'], data['date'])
+print("Found version %s (released %s)" % (data['version'], data['date']))
 
 # create directory for that version, if it did not already exist
 dir = 'releases/' + data['version'] + '/'
@@ -119,26 +119,26 @@ mkdir_p(dir)
 
 # Check if this is a new release
 if os.path.isfile(dir + 'DONE'):
-    print 'version already catalogued'
+    print('version already catalogued')
     exit(0)
 
 # Download file from given url into file at dst
 def download(url, dst):
     res = subprocess.call(["curl", "-C", "-", "-o", dst, url])
     if res != 0:
-        print 'failed downloading ' + url
+        print('failed downloading ' + url)
         exit(1)
 
-print "Downloading appcast from " + APPCAST_URL
+print("Downloading appcast from " + APPCAST_URL)
 download(APPCAST_URL, dir + 'appcast-%s.xml' % data['version'])
 if data['relnotes'] == None:
-    print "no release notes given"
+    print("no release notes given")
 else:
-    print "Downloading release notes from " + data['relnotes']
+    print("Downloading release notes from " + data['relnotes'])
     download(data['relnotes'], dir + 'relnotes-%s.txt' % data['version'])
-print "Downloading source from " + source_url
+print("Downloading source from " + source_url)
 download(source_url, dir + 'texshopsource-%s.zip' % data['version'])
-print "Downloading binary from " + binary_url
+print("Downloading binary from " + binary_url)
 download(binary_url, dir + 'texshop-%s.zip' % data['version'])
 
 # Once all downloads hav successfully completed, record this
