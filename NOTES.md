@@ -86,3 +86,11 @@ releases, which currently are sometimes "out of order".
 * 1.13 (2001-10-04)
 * 1.12 (2001-08-06)
 * 
+
+1.0      March 24, 2001
+
+1.0d6  December 25, 2000
+1.0d5 was released on November 24, 2000
+1.0d4 was released on November 1, 2000
+1.0d3 was released on October 7, 2000
+1.0d2   August 31, 2000

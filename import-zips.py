@@ -57,10 +57,11 @@ committer_email = 'koch@uoregon.edu'
 # The following regex controls which files are ignored, i.e. not imported.
 ignore = re.compile("""
     /$           |  # directories (git only tracks files)
-    ^__MACOSX/   |  # resource forks and extended attribues
+    ^__MACOSX/   |  # resource forks and extended attributes
     /\.DS_Store$ |  # Finder metadata
     /\.svn/      |  # Subversion leftovers
     /CVS/        |  # CVS leftovers
+    \.git        |  # git repository data
     \.(log|aux)$ |  # LaTeX build artifacts
     ~\.nib/      |  # Interface Builder backup files
     /build/      |  # build files
