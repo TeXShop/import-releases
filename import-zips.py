@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 ## Based on git's contrib/fast-import/import-zips.py,
 ## originally written by Johannes Schindelin.
@@ -6,7 +6,7 @@
 ## Usage example:
 ##
 ##  mkdir project; cd project; git init
-##  python ../import-zips.py ../releases/[23].*/*source*zip
+##  python2 ../import-zips.py ../releases/[23].*/*source*zip
 ##  git log --stat import-zips
 
 # TODO: import release notes into commit messages
