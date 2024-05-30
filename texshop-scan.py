@@ -129,6 +129,21 @@ def download(url, dst):
         print('failed downloading ' + url)
         exit(1)
 
+def patch_relnotes(dst):
+    # read all in
+    with open(dst, 'r') as file:
+        str = file.read()
+    # write out a backup file
+    with open(dst + ".orig", 'w') as file:
+        file.write(str)
+    # remove everything up to and include <div id="main"> (plus any whitespace) thereafter
+    str = re.sub(r'<!DOCTYPE.*<div id="main">\s*', '', str, flags=re.DOTALL)
+    # replace everything after </div>
+    str = re.sub(r'(<p>\s*)*</div>\s*</body>\s*</html>\s*', '', str, flags=re.DOTALL)
+    # write it back out
+    with open(dst, 'w') as file:
+        file.write(str)
+
 print("Downloading appcast from " + APPCAST_URL)
 download(APPCAST_URL, dir + 'appcast-%s.xml' % data['version'])
 if data['relnotes'] == None:
@@ -136,6 +151,7 @@ if data['relnotes'] == None:
 else:
     print("Downloading release notes from " + data['relnotes'])
     download(data['relnotes'], dir + 'relnotes-%s.txt' % data['version'])
+    patch_relnotes(dir + 'relnotes-%s.txt' % data['version'])
 print("Downloading source from " + source_url)
 download(source_url, dir + 'texshopsource-%s.zip' % data['version'])
 print("Downloading binary from " + binary_url)
