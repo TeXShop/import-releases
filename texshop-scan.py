@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import urllib.request
 import email.utils
 import xmltodict
